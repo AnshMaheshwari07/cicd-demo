@@ -1,42 +1,39 @@
-name: CI/CD Pipeline
+name: Python CI without Docker
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build, tag, and push image to DockerHub
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          IMAGE_NAME: my-image
-        run: |
-          docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME .
-          docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:latest
 
-  test:
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
-      - name: Install dependencies
+          python-version: '3.8'
+
+      - name: Create and activate virtual environment
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Test with pytest
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install flask
+
+      - name: Run Flask app (background)
         run: |
-          pip install pytest
-          pytest test.py
+          source venv/bin/activate
+          nohup python app.py &
+        shell: bash
+
+      - name: Run tests (if test.py exists)
+        run: |
+          source venv/bin/activate
+          python test.py
+        shell: bash
