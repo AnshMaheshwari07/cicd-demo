@@ -19,21 +19,17 @@ jobs:
         with:
           python-version: '3.8'
 
-      - name: Create and activate virtual environment
+      - name: Install dependencies
         run: |
-          python -m venv venv
-          source venv/bin/activate
           pip install --upgrade pip
           pip install flask
 
-      - name: Run Flask app (background)
+      - name: Run Flask app
         run: |
-          source venv/bin/activate
           nohup python app.py &
+          sleep 5
         shell: bash
 
-      - name: Run tests (if test.py exists)
+      - name: Run tests if present
         run: |
-          source venv/bin/activate
-          python test.py
-        shell: bash
+          if [ -f test.py ]; then python test.py; else echo "No tests found."; fi
