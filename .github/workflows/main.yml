@@ -28,8 +28,12 @@ jobs:
         run: |
           nohup python app.py &
           sleep 5
-        shell: bash
-
-      - name: Run tests if present
+        
+        
+      - name: Test with pytest
         run: |
-          if [ -f test.py ]; then python test.py; else echo "No tests found."; fi
+          pip install pytest
+          pytest test.py
+
+        shell: bash
+          
